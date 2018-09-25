@@ -1,45 +1,15 @@
-import { app, BrowserWindow } from 'electron'
+import {app, BrowserWindow} from 'electron'
 
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
  */
 if (process.env.NODE_ENV !== 'development') {
-  global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
+    global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
 }
 
 const Menu = require('electron').Menu;
 var template = [
-    {
-        label: '编辑',
-        submenu: [{
-            label: '撤销',
-            accelerator: 'CmdOrCtrl+Z',
-            role: 'undo'
-        }, {
-            label: '重做',
-            accelerator: 'Shift+CmdOrCtrl+Z',
-            role: 'redo'
-        }, {
-            type: 'separator'
-        }, {
-            label: '剪切',
-            accelerator: 'CmdOrCtrl+X',
-            role: 'cut'
-        }, {
-            label: '复制',
-            accelerator: 'CmdOrCtrl+C',
-            role: 'copy'
-        }, {
-            label: '粘贴',
-            accelerator: 'CmdOrCtrl+V',
-            role: 'paste'
-        }, {
-            label: '全选',
-            accelerator: 'CmdOrCtrl+A',
-            role: 'selectall'
-        }]
-    },
     {
         label: '刷新',
         click: function (item, focusedWindow) {
@@ -61,8 +31,8 @@ Menu.setApplicationMenu(menu);
 
 let mainWindow
 const winURL = process.env.NODE_ENV === 'development'
-  ? `http://localhost:9080`
-  : `file://${__dirname}/index.html`
+    ? `http://localhost:9080`
+    : `file://${__dirname}/index.html`
 
 const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
@@ -76,35 +46,36 @@ if (shouldQuit) {
     app.quit()
 }
 
-function createWindow () {
-  /**
-   * Initial window options
-   */
-  mainWindow = new BrowserWindow({
-    height: 750,
-    useContentSize: true,
-    width: 1400
-  })
+function createWindow() {
+    /**
+     * Initial window options
+     */
+    mainWindow = new BrowserWindow({
+        webPreferences: {webSecurity: false},
+        height: 750,
+        useContentSize: true,
+        width: 1400
+    })
 
-  mainWindow.loadURL(winURL)
+    mainWindow.loadURL(winURL)
 
-  mainWindow.on('closed', () => {
-    mainWindow = null
-  })
+    mainWindow.on('closed', () => {
+        mainWindow = null
+    })
 }
 
 app.on('ready', createWindow)
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+    if (process.platform !== 'darwin') {
+        app.quit()
+    }
 })
 
 app.on('activate', () => {
-  if (mainWindow === null) {
-    createWindow()
-  }
+    if (mainWindow === null) {
+        createWindow()
+    }
 })
 
 /**

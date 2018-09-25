@@ -21,7 +21,7 @@
                 this.chosed.forEach(user => {
                     sum += Number(user.sl_1) * Number(user.je_);
                 })
-                return sum;
+                return sum.toFixed(2);
             }
         },
         methods: {
