@@ -16,7 +16,8 @@
                     title="开票"
                     :visible.sync="dialogVisible"
                     width="80%"
-                    height="70%">
+                    height="70%"
+                    append-to-body>
                 <span>
                     <ConfirmContent :chosedata="chosed"></ConfirmContent>
                 </span>
@@ -30,6 +31,16 @@
                     <el-button @click="dialogVisible = false" style="margin-left: 10px">取 消</el-button>
                     <el-button type="primary" @click="confirm"
                                v-loading.fullscreen.lock="fullscreenLoading">确 定</el-button>
+                </span>
+            </el-dialog>
+            <el-dialog
+                    title="开票信息"
+                    :visible.sync="innerVisible"
+                    width="80%"
+                    height="70%">
+                <span>{{billmessage}}</span>
+                <span slot="footer" class="dialog-footer">
+                    <el-button type="primary" @click="billreturn">确 定</el-button>
                 </span>
             </el-dialog>
         </el-container>
@@ -64,7 +75,10 @@
                 dialogVisible: false,
                 errormsg: "",
                 invoicenum: "",
-                fullscreenLoading: false
+                fullscreenLoading: false,
+                innerVisible: false,
+                billmessage: '',
+                isbillsuccess: false
             }
         },
         created: function () {
@@ -113,12 +127,39 @@
             }
         },
         methods: {
+            billreturn(){
+                this.innerVisible = false;
+                if(this.isbillsuccess == true){
+                    window.location.reload();
+                }
+            },
+            // open(){
+            //     // this.fullscreenLoading = false;
+            //     // this.dialogVisible = false;
+            //     if(this.isbillsuccess == true){
+            //         this.$message({
+            //             type: 'success',
+            //             duration: 3,
+            //             message: '开票成功，请刷新页面',
+            //             showClose: true
+            //         });
+            //     }else{
+            //         this.$message({
+            //             type: 'error',
+            //             duration: 3,
+            //             message: '开票失败，请检查网络连接后重试',
+            //             showClose: true
+            //         });
+            //     }
+            //
+            //     // window.location.reload();
+            // },
             confirm() {
                 if (this.invoicenum == '') {
                     document.getElementById("invoiceinfo").focus()
                     return;
                 }
-                this.fullscreenLoading = true;
+                // this.fullscreenLoading = true;
                 // setTimeout(() => {
                 //     this.fullscreenLoading = false;
                 // }, 2000);
@@ -133,13 +174,21 @@
                         chosedId: encodeURIComponent(JSON.stringify(chosedId)),
                         invoicenum: this.invoicenum
                     }
-                }).then(function (res) {
-                    this.$message.success("开票成功，请刷新页面")
-                }).catch(function (error) {
-                    this.$message.error("开票失败，失败信息：\n"+error)
+                }).then(res=> {
+                    this.billmessage = '开票成功';
+                    this.innerVisible = true;
+                    this.isbillsuccess = true;
+                    // this.fullscreenLoading = false;
+                    // this.dialogVisible = false;
+                    // window.location.reload();
+                }).catch(error=> {
+                    this.billmessage = '开票失败，请检查网络连接后重试';
+                    this.innerVisible = true;
+                    this.isbillsuccess = false;
+                    // this.fullscreenLoading = false;
+                    // this.dialogVisible = false;
+                    // window.location.reload();
                 });
-                this.fullscreenLoading = false;
-                this.dialogVisible = false;
             },
             test() {
                 console.log(this.chosed)

@@ -11,7 +11,8 @@
             </el-menu>
         </div>
         <div style="float: right; margin-right: 20px; margin-bottom: 5px; margin-top: 20px">
-            <el-button type="warning" @click="update">立即同步</el-button>
+            <el-button id="updatemessagebutton" :plain="true" @click="open" v-show="false">打开消息提示</el-button>
+            <el-button id="updatenowbutton" type="info" @click="update" :loading="isupdatebutton">{{updatemessage}}</el-button>
         </div>
     </div>
 </template>
@@ -21,11 +22,33 @@
         data() {
             return {
                 activeIndex: '0',
-                searchword: ""
+                searchword: "",
+                isupdatesuccess: true,
+                isupdatebutton: false,
+                updatemessage: '立即同步'
             }
         },
         computed: {},
         methods: {
+            open(){
+                if(this.isupdatesuccess == true){
+                    this.$message({
+                        type: 'success',
+                        duration: 0,
+                        message: '同步成功，可随时刷新',
+                        showClose: true
+                    });
+                }else{
+                    this.$message({
+                        type: 'error',
+                        duration: 0,
+                        message: '同步失败，请检查网络连接后重试',
+                        showClose: true
+                    });
+                }
+                this.updatemessage = '立即同步'
+                this.isupdatebutton = false;
+            },
             sendActiveIndex(val) {
                 this.activeIndex = val
                 this.$emit("activeIndex", this.activeIndex)
@@ -35,18 +58,16 @@
                 this.$emit("search", this.searchword)
             },
             update(){
-                this.$message.info("正在同步，请耐心等待，请勿关闭程序")
+                this.$message.info("正在同步，请耐心等待，请勿关闭程序");
+                this.updatemessage = "同步中";
+                this.isupdatebutton = true;
                 this.$axios.get("http://localhost:8080/message/update.do")
                     .then(res => {
-                        this.$message({
-                            type: 'success',
-                            duration: 0,
-                            message: '同步成功，可随时刷新',
-                            showClose: true
-                        })
-                    }).catch(function (error) {
-                        this.$message.error('立即同步失败，请检查网络连接后重试');
-                        return;
+                        this.isupdatesuccess = true;
+                        document.getElementById("updatemessagebutton").click();
+                    }).catch(error => {
+                        this.isupdatesuccess = false
+                        document.getElementById("updatemessagebutton").click();
                     })
             }
         }
