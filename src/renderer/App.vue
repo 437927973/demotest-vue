@@ -6,7 +6,8 @@
                 <MenuBar @activeIndex="changeActiveIndex" @search="search"></MenuBar>
             </el-header>
             <el-container>
-                <Content :userinfo="tableData" :loading="loading" :chosed="chosed" @chose="choseselection"></Content>
+                <Content :userinfo="tableData" :loading="loading" :chosed="chosed" @chose="choseselection"
+                         @pagechange="pagechange" :currentpagenow="currentpage" :totalsize="totalsize"></Content>
             </el-container>
             <el-footer>
                 <CustomButtonBar :chosed="chosed" @bill="billing"></CustomButtonBar>
@@ -66,7 +67,7 @@
                 loading: true,
                 chosed: [],
                 activeIndex: "0",
-                showData: [],
+                // showData: [],
                 allData: [],
                 noInvoiceData: [],
                 invoiceData: [],
@@ -78,25 +79,36 @@
                 fullscreenLoading: false,
                 innerVisible: false,
                 billmessage: '',
-                isbillsuccess: false
+                isbillsuccess: false,
+                currentpage: 1,
+                totalsize: 0
             }
         },
         created: function () {
-            this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo")
+            this.$axios.get("http://localhost:8080/message/userinfo.do", {
+            // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                params: {
+                    currentpage: this.currentpage
+                }
+            })
+            // this.$axios.get("http://localhost:8080/demotest/message/userinfo.do")
             // this.$axios.get("http://localhost:8080/message/userinfo.do")
                 .then(res => {
                     this.allData = res.data.users;
-                    this.allData.forEach(data => {
-                        if (data.invoice === "") {
-                            this.noInvoiceData.push(data)
-                        } else {
-                            this.invoiceData.push(data)
-                        }
-                    })
-                    this.showData = this.allData;
-                    this.loading = false
+                    // this.allData.forEach(data => {
+                    //     if (data.invoice === "") {
+                    //         this.noInvoiceData.push(data)
+                    //     } else {
+                    //         this.invoiceData.push(data)
+                    //     }
+                    // });
+                    // this.showData = this.allData;
+                    this.loading = false;
+                    this.totalsize = res.data.totalsize
                 }).catch(function (error) {
                 this.$message.error('error');
+                this.loading = false;
+                this.totalsize = 0
                 return;
             })
         },
@@ -113,7 +125,7 @@
             },
             tableData() {
                 if (this.activeIndex == "0") {
-                    return this.showData;
+                    return this.allData;
                 }
                 if (this.activeIndex == "1") {
                     return this.noInvoiceData;
@@ -127,33 +139,76 @@
             }
         },
         methods: {
-            billreturn(){
+            pagechange(val) {
+                this.currentpage = val;
+                if (this.activeIndex === "0") {
+                    this.$axios.get("http://localhost:8080/message/userinfo.do", {
+                    // this.$axios.get("http://localhost:8080/demotest/message/userinfo.do", {
+                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                        params: {
+                            currentpage: this.currentpage
+                        }
+                    }).then(res => {
+                        console.log("all change");
+                        this.allData = res.data.users;
+                        this.totalsize = res.data.totalsize
+                    }).catch(error=>{
+
+                    })
+                }
+                if (this.activeIndex === "1") {
+                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                    // this.$axios.get("http://localhost:8080/demotest/message/userinfowithnoinvoice.do", {
+                    this.$axios.get("http://localhost:8080/message/userinfowithnoinvoice.do", {
+                        params: {
+                            currentpage: this.currentpage
+                        }
+                    }).then(res => {
+                        this.noInvoiceData = res.data.users;
+                        this.totalsize = res.data.totalsize
+                    }).catch(error=>{
+
+                    })
+                }
+                if (this.activeIndex === "2") {
+                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                    // this.$axios.get("http://localhost:8080/demotest/message/userinfowithinvoice.do", {
+                    this.$axios.get("http://localhost:8080/message/userinfowithinvoice.do", {
+                        params: {
+                            currentpage: this.currentpage
+                        }
+                    }).then(res => {
+                        this.invoiceData = res.data.users;
+                        this.totalsize = res.data.totalsize
+                    }).catch(error=>{
+
+                    })
+                }
+                if (this.activeIndex === "3") {
+                    if(this.searchword == ""){
+                        return;
+                    }
+                    this.$axios.get("http://localhost:8080/message/userinfowithkey.do", {
+                    // this.$axios.get("http://localhost:8080/demotest/message/userinfowithkey.do", {
+                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                        params: {
+                            currentpage: this.currentpage,
+                            searchword: this.searchword
+                        }
+                    }).then(res => {
+                        this.invoiceData = res.data.users;
+                        this.totalsize = res.data.totalsize
+                    }).catch(error=>{
+
+                    })
+                }
+            },
+            billreturn() {
                 this.innerVisible = false;
-                if(this.isbillsuccess == true){
+                if (this.isbillsuccess == true) {
                     window.location.reload();
                 }
             },
-            // open(){
-            //     // this.fullscreenLoading = false;
-            //     // this.dialogVisible = false;
-            //     if(this.isbillsuccess == true){
-            //         this.$message({
-            //             type: 'success',
-            //             duration: 3,
-            //             message: '开票成功，请刷新页面',
-            //             showClose: true
-            //         });
-            //     }else{
-            //         this.$message({
-            //             type: 'error',
-            //             duration: 3,
-            //             message: '开票失败，请检查网络连接后重试',
-            //             showClose: true
-            //         });
-            //     }
-            //
-            //     // window.location.reload();
-            // },
             confirm() {
                 if (this.invoicenum == '') {
                     document.getElementById("invoiceinfo").focus()
@@ -165,29 +220,24 @@
                 // }, 2000);
 
                 var chosedId = [];
-                this.chosed.forEach(data=>{
+                this.chosed.forEach(data => {
                     chosedId.push(data.id)
                 })
                 console.log(chosedId)
-                this.$axios.get("http://localhost:8080/message/bill.do",{
-                    params:{
+                // this.$axios.get("http://localhost:8080/demotest/message/bill.do",{
+                this.$axios.get("http://localhost:8080/message/bill.do", {
+                    params: {
                         chosedId: encodeURIComponent(JSON.stringify(chosedId)),
                         invoicenum: this.invoicenum
                     }
-                }).then(res=> {
+                }).then(res => {
                     this.billmessage = '开票成功';
                     this.innerVisible = true;
                     this.isbillsuccess = true;
-                    // this.fullscreenLoading = false;
-                    // this.dialogVisible = false;
-                    // window.location.reload();
-                }).catch(error=> {
+                }).catch(error => {
                     this.billmessage = '开票失败，请检查网络连接后重试';
                     this.innerVisible = true;
                     this.isbillsuccess = false;
-                    // this.fullscreenLoading = false;
-                    // this.dialogVisible = false;
-                    // window.location.reload();
                 });
             },
             test() {
@@ -198,56 +248,73 @@
             },
             changeActiveIndex(val) {
                 this.activeIndex = val;
+                this.currentpage = 1;
+                this.pagechange(1);
             },
             search(val) {
-                this.searchData.splice(0, this.searchData.length)
-                this.searchword = val
+                this.searchData.splice(0, this.searchData.length);
+                this.searchword = val.trim();
 
                 if (this.searchword === "") {
                     this.activeIndex = "0";
-                    this.showData = this.allData;
-                    this.noInvoiceData.splice(0, this.noInvoiceData.length);
-                    this.invoiceData.splice(0, this.invoiceData.length);
-                    this.allData.forEach(data => {
-                        if (data.invoice === "") {
-                            this.noInvoiceData.push(data);
-                        } else {
-                            this.invoiceData.push(data)
-                        }
-                    })
+                    // this.showData = this.allData;
+                    // this.noInvoiceData.splice(0, this.noInvoiceData.length);
+                    // this.invoiceData.splice(0, this.invoiceData.length);
+                    // this.allData.forEach(data => {
+                    //     if (data.invoice === "") {
+                    //         this.noInvoiceData.push(data);
+                    //     } else {
+                    //         this.invoiceData.push(data)
+                    //     }
+                    // })
                     return
                 }
 
 
                 this.activeIndex = "3";
-                this.allData.forEach(data => {
-                    if ((String(data.dwmc_3)).indexOf(this.searchword) != -1) {
-                        this.searchData.push(data)
+                // this.allData.forEach(data => {
+                //     if ((String(data.dwmc_3)).indexOf(this.searchword) != -1) {
+                //         this.searchData.push(data)
+                //     }
+                // });
+                // this.$axios.get("http://localhost:8080/demotest/message/userinfowithkey.do", {
+                // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                this.$axios.get("http://localhost:8080/message/userinfowithkey.do", {
+                    params: {
+                        currentpage: this.currentpage,
+                        searchword: this.searchword
                     }
-                });
-                this.showData = this.searchData;
-                this.noInvoiceData.splice(0, this.noInvoiceData.length);
-                this.invoiceData.splice(0, this.invoiceData.length);
-                this.showData.forEach(data => {
-                    if (data.invoice === "") {
-                        this.noInvoiceData.push(data);
-                    } else {
-                        this.invoiceData.push(data)
-                    }
+                }).then(res => {
+                    this.searchData = res.data.users;
+                    this.totalsize = res.data.totalsize
                 })
+                // this.showData = this.searchData;
+                // this.noInvoiceData.splice(0, this.noInvoiceData.length);
+                // this.invoiceData.splice(0, this.invoiceData.length);
+                // this.showData.forEach(data => {
+                //     if (data.invoice === "") {
+                //         this.noInvoiceData.push(data);
+                //     } else {
+                //         this.invoiceData.push(data)
+                //     }
+                // })
             },
             billing() {
                 if (this.chosed.length == 0) {
                     this.$message.error('还未选中记录');
                     return;
                 }
-                var noInvoice = true;
+                var hasInvoice = false;
                 this.chosed.forEach(data => {
-                    if (data.invoice != "") {
-                        noInvoice = false;
+                    if (data.invoice == null || data.invoice == "" ) {
+                        hasInvoice = false;
+                    }else{
+                        hasInvoice = true;
                     }
+                    console.log(data.invoice)
+                    console.log(hasInvoice)
                 });
-                if (noInvoice == false) {
+                if (hasInvoice == true) {
                     this.$message.error('仅未开票记录可选中开票');
                     return;
                 }

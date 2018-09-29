@@ -61,6 +61,7 @@
                 this.$message.info("正在同步，请耐心等待，请勿关闭程序");
                 this.updatemessage = "同步中";
                 this.isupdatebutton = true;
+                // this.$axios.get("http://localhost:8080/demotest/message/update.do")
                 this.$axios.get("http://localhost:8080/message/update.do")
                     .then(res => {
                         this.isupdatesuccess = true;
