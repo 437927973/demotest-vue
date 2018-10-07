@@ -6,8 +6,11 @@
                 <MenuBar @activeIndex="changeActiveIndex" @search="search"></MenuBar>
             </el-header>
             <el-container>
-                <Content :userinfo="tableData" :loading="loading" :chosed="chosed" @chose="choseselection"
+                <Content v-if="activeIndex == 0 || activeIndex == 1 || activeIndex == 3" :userinfo="tableData"
+                         :loading="loading" :chosed="chosed" @chose="choseselection"
                          @pagechange="pagechange" :currentpagenow="currentpage" :totalsize="totalsize"></Content>
+                <Classification v-if="activeIndex == 2" :salesinfo="salesinfo" @salesPagechange="salesPagechange"
+                                :currentpagenow="currentpage" :totalsize="totalsize"></Classification>
             </el-container>
             <el-footer>
                 <CustomButtonBar :chosed="chosed" @bill="billing"></CustomButtonBar>
@@ -53,6 +56,7 @@
     import Content from './components/Content'
     import CustomButtonBar from './components/CustomButtonBar'
     import ConfirmContent from './components/ConfirmContent'
+    import Classification from './components/Classification'
 
     export default {
         name: 'my-project',
@@ -60,7 +64,8 @@
             MenuBar,
             Content,
             CustomButtonBar,
-            ConfirmContent
+            ConfirmContent,
+            Classification
         },
         data() {
             return {
@@ -70,7 +75,7 @@
                 // showData: [],
                 allData: [],
                 noInvoiceData: [],
-                invoiceData: [],
+                // invoiceData: [],
                 searchword: "",
                 searchData: [],
                 dialogVisible: false,
@@ -81,18 +86,18 @@
                 billmessage: '',
                 isbillsuccess: false,
                 currentpage: 1,
-                totalsize: 0
+                totalsize: 0,
+                salesinfo: [],
             }
         },
         created: function () {
-            this.$axios.get("http://localhost:8080/message/userinfo.do", {
-            // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+            // this.$axios.get("http://localhost:8080/message/userinfo.do", {
+            this.$axios.get("http://localhost:8080/demotest/message/userinfo.do", {
+                // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
                 params: {
                     currentpage: this.currentpage
                 }
             })
-            // this.$axios.get("http://localhost:8080/demotest/message/userinfo.do")
-            // this.$axios.get("http://localhost:8080/message/userinfo.do")
                 .then(res => {
                     this.allData = res.data.users;
                     // this.allData.forEach(data => {
@@ -130,21 +135,33 @@
                 if (this.activeIndex == "1") {
                     return this.noInvoiceData;
                 }
-                if (this.activeIndex == "2") {
-                    return this.invoiceData;
-                }
+                // if (this.activeIndex == "2") {
+                //     return this.invoiceData;
+                // }
                 if (this.activeIndex == "3") {
                     return this.searchData;
                 }
             }
         },
         methods: {
+            salesPagechange(val) {
+                this.$axios.get("http://localhost:8080/demotest/message/salesinfo.do", {
+                    params: {
+                        currentpage: this.currentpage
+                    }
+                }).then(res => {
+                    this.salesinfo = res.data.users;
+                    this.totalsize = res.data.totalsize
+                }).catch(error => {
+
+                })
+            },
             pagechange(val) {
                 this.currentpage = val;
                 if (this.activeIndex === "0") {
-                    this.$axios.get("http://localhost:8080/message/userinfo.do", {
-                    // this.$axios.get("http://localhost:8080/demotest/message/userinfo.do", {
-                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                    // this.$axios.get("http://localhost:8080/message/userinfo.do", {
+                    this.$axios.get("http://localhost:8080/demotest/message/userinfo.do", {
+                        // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
                         params: {
                             currentpage: this.currentpage
                         }
@@ -152,53 +169,53 @@
                         console.log("all change");
                         this.allData = res.data.users;
                         this.totalsize = res.data.totalsize
-                    }).catch(error=>{
+                    }).catch(error => {
 
                     })
                 }
                 if (this.activeIndex === "1") {
                     // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
-                    // this.$axios.get("http://localhost:8080/demotest/message/userinfowithnoinvoice.do", {
-                    this.$axios.get("http://localhost:8080/message/userinfowithnoinvoice.do", {
+                    this.$axios.get("http://localhost:8080/demotest/message/userinfowithnoinvoice.do", {
+                        // this.$axios.get("http://localhost:8080/message/userinfowithnoinvoice.do", {
                         params: {
                             currentpage: this.currentpage
                         }
                     }).then(res => {
                         this.noInvoiceData = res.data.users;
                         this.totalsize = res.data.totalsize
-                    }).catch(error=>{
+                    }).catch(error => {
 
                     })
                 }
-                if (this.activeIndex === "2") {
-                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
-                    // this.$axios.get("http://localhost:8080/demotest/message/userinfowithinvoice.do", {
-                    this.$axios.get("http://localhost:8080/message/userinfowithinvoice.do", {
-                        params: {
-                            currentpage: this.currentpage
-                        }
-                    }).then(res => {
-                        this.invoiceData = res.data.users;
-                        this.totalsize = res.data.totalsize
-                    }).catch(error=>{
-
-                    })
-                }
+                // if (this.activeIndex === "2") {
+                //     // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                //     this.$axios.get("http://localhost:8080/demotest/message/userinfowithinvoice.do", {
+                //     // this.$axios.get("http://localhost:8080/message/userinfowithinvoice.do", {
+                //         params: {
+                //             currentpage: this.currentpage
+                //         }
+                //     }).then(res => {
+                //         this.invoiceData = res.data.users;
+                //         this.totalsize = res.data.totalsize
+                //     }).catch(error=>{
+                //
+                //     })
+                // }
                 if (this.activeIndex === "3") {
-                    if(this.searchword == ""){
+                    if (this.searchword == "") {
                         return;
                     }
-                    this.$axios.get("http://localhost:8080/message/userinfowithkey.do", {
-                    // this.$axios.get("http://localhost:8080/demotest/message/userinfowithkey.do", {
-                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                    // this.$axios.get("http://localhost:8080/message/userinfowithkey.do", {
+                    this.$axios.get("http://localhost:8080/demotest/message/userinfowithkey.do", {
+                        // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
                         params: {
                             currentpage: this.currentpage,
                             searchword: this.searchword
                         }
                     }).then(res => {
-                        this.invoiceData = res.data.users;
+                        this.searchData = res.data.users;
                         this.totalsize = res.data.totalsize
-                    }).catch(error=>{
+                    }).catch(error => {
 
                     })
                 }
@@ -224,8 +241,8 @@
                     chosedId.push(data.id)
                 })
                 console.log(chosedId)
-                // this.$axios.get("http://localhost:8080/demotest/message/bill.do",{
-                this.$axios.get("http://localhost:8080/message/bill.do", {
+                this.$axios.get("http://localhost:8080/demotest/message/bill.do", {
+                    // this.$axios.get("http://localhost:8080/message/bill.do", {
                     params: {
                         chosedId: encodeURIComponent(JSON.stringify(chosedId)),
                         invoicenum: this.invoicenum
@@ -277,9 +294,9 @@
                 //         this.searchData.push(data)
                 //     }
                 // });
-                // this.$axios.get("http://localhost:8080/demotest/message/userinfowithkey.do", {
-                // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
-                this.$axios.get("http://localhost:8080/message/userinfowithkey.do", {
+                this.$axios.get("http://localhost:8080/demotest/message/userinfowithkey.do", {
+                    // this.$axios.get("https://www.easy-mock.com/mock/5b909845a93f2b59ad16fb7d/exedemo/userinfo", {
+                    // this.$axios.get("http://localhost:8080/message/userinfowithkey.do", {
                     params: {
                         currentpage: this.currentpage,
                         searchword: this.searchword
@@ -306,9 +323,9 @@
                 }
                 var hasInvoice = false;
                 this.chosed.forEach(data => {
-                    if (data.invoice == null || data.invoice == "" ) {
+                    if (data.invoice == null || data.invoice == "") {
                         hasInvoice = false;
-                    }else{
+                    } else {
                         hasInvoice = true;
                     }
                     console.log(data.invoice)
